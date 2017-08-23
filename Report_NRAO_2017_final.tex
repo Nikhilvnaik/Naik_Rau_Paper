@@ -1,0 +1,493 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%References list
+% 1 - wikipedia radio astronomy article https://en.wikipedia.org/wiki/Radio_telescope
+% 2 - LFRA from NCRA
+% 3 - Thomson's radio interferometry book
+% 4 - Wikipedia interferometry article
+% 5 - Born and Wolf statistical 
+% 6 - paper on feathering - https://casa.nrao.edu/Release3.4.0/docs/userman/UserManse30.html
+% 7- Rau, Cornwell 2011 " labal urvpaper
+% 8 - URV's PhD thesis : label ; urvthesis
+% 9- Cornwell2008 : label cornwell2008
+% 10 - CASA document log for MTMFS
+% 11 - URV's talk on imaging-deconvolution
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+\documentclass{article}
+\usepackage[margin = 2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{subfig}
+\title{A joint deconvolution algorithm to combine single dish and interferometer data for wideband multi-term imaging}
+\author{Nikhil Vijay Naik\footnote{Indian Institute of Technology, Kharagpur, West Bengal, India - 721302}}
+\begin{document}
+\maketitle
+\begin{abstract}
+	Imaging in Radio Astronomy is done by the means of either Single-Dish Radio Telescopes or Interferometric Array Radiotelescopes. Image Formation in a radio interferometer deals with calculating the inverse Fourier Transform of the Visibility Function $V(u,v)$. This strategy offers excellent angular resolutions but suffers from the \textit{short-spacing} problem, where sources with large angular size and low surface brightness are not seen in an interferometer image. On the other hand, single-dish radio telescopes offer very coarse resolution, but respond very well to large angular scales. \\\\This project aims to develop and prototype an algorithm to combine simulated data from these two types of telescopes, in order to bring about a good reconstruction of the true sky image at a wide range of frequencies. Consequently, an important physical parameter, \textit{viz.} the spectrum of every source in the Field of View (FOV) is estimated from the reconstructed image.
+\end{abstract}
+\newpage
+\tableofcontents
+\newpage
+\section{Introduction}
+Radio Telescopes are used for creating images of the sky in the Radio Frequency regime of the Electromagnetic (EM) spectrum, which ranges from 3kHz to 300GHz \hyperref[ref1]{[1]}. Radio Telescopes belong to two distinct categories :   
+\begin{enumerate}
+\item Single-Dish Radio Telescopes and
+\item Interferometric Arrays.
+\end{enumerate}
+\label{section1.1}\subsection{Imaging with Single-Dish Radio Telescopes : Introduction}
+Single-Dish radio telescopes, such as the Robert C. Byrd Green Bank Telescope (hereafter GBT) are designed to respond linearly to the intensity of the radiation received from a point in the sky. The strategy followed to create an image from such an instrument is as follows : \\
+The antenna beam \footnote{It is the spatial response of the antenna to a source of unit intensity located in the sky.} sweeps across the region of interest. The response of each point on the sky as the beam sweeps across it is summed and put into a pixel. This is carried out for the whole Field-of-View (FOV) till the region has been fully sampled. This strategy is known colloquially as "basket-weaving", and is illustrated in \figurename{ 1}. The white circles represent beam sampling.\\
+\begin{figure} [H]
+\centering
+\begin{minipage}[b]{.45\textwidth}
+\includegraphics[width=\linewidth]{Extended_Flat_true_im_enhanced.png}
+\end{minipage}%
+\begin{minipage}[b]{.45\linewidth}
+\includegraphics[width=\textwidth]{BasketWeaving.png}
+\end{minipage}
+\caption{Illustration of the true sky image (left) and imaging using single-dish "basket weaving" technique (right)}
+\label{ 1}
+\end{figure}
+Mathematically, the basket-weaving technique is equivalent to a \textit{convolution}, where the antenna beam is \textit{convolved} with the true sky image in order to form the image : 
+\begin{equation}
+I^{Image} = I^{Sky} * P^{Antenna}
+\end{equation}
+where $P^{Antenna}$ is the beam or hereafter the \textit{Antenna Power Pattern}, and '$*$' denotes the convolution operator.
+\subparagraph{Properties of Single-dish images}
+From the theory of diffraction, it is known \hyperref[ref2]{\hyperref[ref2]{[2]}}\hyperref[ref3]{[3]} that the highest possible resolution in an image  that is created from an aperture of diameter \textit{D} for radiation of wavelength $\lambda$ is given by 
+\begin{equation}
+\theta \sim \frac{\lambda}{D}
+\end{equation} 
+From this equation, it is immediately seen that the resolution for radio frequencies is rather coarse. For the GBT dish with a diameter of 100m, the resolution at $\nu\sim$ 1.5GHz is still $\sim5$ arcmin. Hence, single dish radio-telescopes are not useful for obtaining high-resolution radio images. This logically leads to the technique of interferometry for conducting high-resolution imaging.
+\label{sec1.2}\subsection{Imaging with Interferometric Arrays : Introduction}
+\begin{figure}
+\centering
+\begin{minipage}[b]{.35\textwidth}
+\includegraphics[width=\linewidth]{VLA_pic.jpg}
+\end{minipage}%
+\begin{minipage}[b]{.35\linewidth}
+\includegraphics[width=\textwidth]{GMRT_pic.jpg}
+\end{minipage}
+\caption{Examples of interferometers : The Very Large Array (VLA) (left) and the Giant Metrewave Radio Telescope (GMRT) (right). Image credits - NRAO and NCRA (VLA and GMRT respectively) }
+% % give image credits to NRAO and NCRA.
+\label{2}
+\end{figure}
+Interferometric arrays (\figurename{ 2}) are telescopes that have multiple elements or antennas. The radiation received at each antenna is combined using signal-processing software/hardware for creating the image - this technique is called 'Interferometry'. Each pair of antennas measures an \textit{interference fringe}, and $n$ antennas give $\frac{n(n-1)}{2}$ such fringes. Measurement of these fringes leads to the mathematical reconstruction of the \textit{Visibility Function V(u,v)}. By the Van Cittert - Zernicke theorem of optics, it is known that the Intensity of radiation in the plane\footnote{If the FOV is too large, the assumption of the sky being a plane does break down} of the sky and the visibility function are related by a two-dimensional Fourier transform \hyperref[ref2]{[2]}\hyperref[ref3]{[3]}\hyperref[ref4]{[4]}\hyperref[ref5]{[5]}.
+Mathematically, we write 
+\begin{equation}
+V(u,v) = \int\int\frac{I(l,m)}{\sqrt{1-l^2 - m^2}} e^{-2\pi i [lu+mv]} du dv
+\end{equation} 
+Where $V(u,v)$ is the visibility function, $I(l,m)$ is the intensity in space, $l, m$ are the \textit{direction cosines} and $(u,v)$ are the \textit{Fourier-domain} coordinates. A deeper treatment of interferometry, along with its mathematics can be found in \hyperref[ref2]{[2]}\hyperref[ref3]{[3]}\hyperref[ref4]{[4]}.
+\subparagraph{Properties of interferometer images}
+From Equation (2), we know that the finest resolution that can be measured by an aperture of diameter D is $\lambda/D$. In case of an interferometer, $D$ is the \textit{longest baseline}, defined as the maximum separation between a pair of antennas, which is unconstrained. 
+This makes the technique of interferometry extremely powerful and it leads to very high-resolution images (arcsecond or sub-arcsecond) of the radio sky.
+As can be seen in \figurename{ 3}, the image of the same sky as seen by a single-dish radio telescope and an interferometer can look very different in terms of resolution.
+\begin{figure}[H]
+\centering
+\begin{minipage}[b]{.39\textwidth}
+\includegraphics[width=\linewidth]{Extended_Flat_SID_img}
+\end{minipage}%
+\begin{minipage}[b]{.4\linewidth}
+\includegraphics[width=\textwidth]{VLA_img}
+\end{minipage}
+\caption{Image of the true sky from \hyperref[ 1]{Figure 1}, reconstructed using a single dish telescope (left) and an interferometer (right). }
+\label{3}
+\end{figure}
+\textit{Note the point sources are almost completely absent on the left, but the extended source in the interferometer image on the right is imaged very faintly. This observation forms an important justification for this project.}
+\subsection{Motivation behind the Project and Problem Statement}
+As was seen in \figurename{ 3}, a single-dish instrument provides images with very coarse resolution. An interferometer provides images with excellent resolution, however, it does not faithfully reproduce objects that have very large angular sizes and low surface brightness. Scientific goals of various kinds can be achieved by combining best of what these two classes of instruments have to offer.\\Techniques such as \textit{feathering}\hyperref[ref6]{[6]} exist to combine the two kinds of images. However, these suffer from many problems, rendering them insufficient as a reliable technique for image combination. These include : 
+\begin{enumerate}
+\item It depends heavily on the arbitrary scaling of single-dish data, which may not always lead to physically sensible results.
+\item It works only for data taken at exactly one frequency. It fails to utilise the vast potential of multi-frequency data taken with modern telescopes such as the VLA or the GMRT. 
+\item Wideband Imaging algorithms exist \hyperref[urvpaper]{(Rau and Cornwell 2011)}\hyperref[urvthesis]{(Rau 2011, PhD thesis)} for pure interferometer data, but due to the inherent limitations of imaging with an interferometer (called the \textit{short spacing problem}), these are not useful for sources which have large angular extent. 
+\end{enumerate}
+\textbf{\textit{This project aims to resolve all these deficiencies associated with feathering and wideband image reconstruction, namely, the dependency on the single-dish scaling and the short-spacing problem.}}\\*\\*
+\textbf{\textit{\underline{Problem Statement} : Development of a joint deconvolution algorithm to combine single dish and interferometer data for wideband multi-term imaging.}}
+\section{Development of the Methodology and Algorithm}
+This section breaks down the problem statement into its component sub-problems. In \hyperref[AlgoDevpt]{Section 2.4}, the individual solutions are put together to develop the final algorithm which is heuristically described. 
+\label{shortspacingprob}\subsection{The Short Spacing Problem}
+By the Van Cittert-Zernicke theorem (\hyperref[sec1.2]{Section 1.2} and references therein), the Fourier Transform of the intensity (as a function of space) is the  \textit{complex visibility function}. Hence, the Fourier transform of the reconstructed image will give the sampled visibility function (in the discrete case). \\*\\*The short spacing problem is illustrated in \figurename{ 4}. As can be seen, the Fourier transform of the interferometer image insufficiently samples the region around $(0,0)$. This is called the \textit{central uv-hole}. On the other hand, the single-dish data samples this precise region very well (\figurename{ 4} bottom half), but lacks the data at large values of (u,v). This is overcome using the feathering technique, but it suffers from a few problems. The technique and its shortcomings are discussed in \hyperref[feathering]{Section 2.3}.
+The origin of the short spacing problem is briefly described below. \\*\\*
+The $(u,v)$ coordinate system is defined as follows \hyperref[ref2]{[2]}\hyperref[ref3]{[3]}\hyperref[urvpaper]{(Rau and Cornwell 2011)}\hyperref[urvthesis]{(Rau 2011, PhD thesis)}:
+\\*\\*
+\begin{minipage}{0.4\textwidth}
+$u = \frac{b_{E-W}}{\lambda}$ 
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+$v = \frac{b_{N-S}}{\lambda} $
+\end{minipage}
+\\*\\*
+Where, $b_{E-W}$ and $b_{N-S}$ are the lengths of the baselines (\textit{i.e.} - the separation between two antennas) in the East-West and North-South direction respectively. As any two antennas must always be separated by a finite nonzero distance, the values $u$ and $v$ can never be simultaneously zero. Hence, the smallest spacings always remain un-sampled. \\*As sources with large angular extent have visibility values clustered around the origin, they are always undersampled and missed by the interferometer. This is clearly seen in \figurename{ 4}\footnote{Note that the image in \figurename{ 4} is flipped.}.
+\begin{figure}
+\centering
+\begin{minipage}[b]{.35\textwidth}
+\includegraphics[width=\linewidth]{VLAimg.png}
+\includegraphics[width=\linewidth]{GBTimg.png}
+\end{minipage}%
+\begin{minipage}[b]{.35\linewidth}
+\includegraphics[width=\textwidth]{FFTVLAimg.png}
+\includegraphics[width=\textwidth]{FFTGBTimg.png}
+\end{minipage}
+\caption{The short spacing-problem.}
+% % give image credits to NRAO and NCRA.
+\label{4}
+\end{figure}
+The interferometer (VLA) samples large values of the \textit{(u,v)} plane but leaves out the area near $(0,0)$. On the other hand, the Single-dish telescope (GBT) does not sample large values of $(u,v)$ but densely samples the centre
+\label{section2.2}\subsection{Multi-Term, Multi-Frequency Wideband Imaging}
+	The description of a narrow-band multiterm multifrequency algorithm draws heavily from two sources : \hyperref[urvpaper]{Rau and Cornwell 2011} and \hyperref[urvthesis]{"Parameterized Deconvolution For Wide-Band
+Radio Synthesis Imaging"} (Ph.D. dissertation of Urvashi Rau Venkata at the NRAO).
+Any radio image containing information on multiple angular scales can be written as a linear sum of a \textit{sky model} comprising of $\delta$ functions, and a \textit{smoothing kernel} which is usually a tapered, inverted, truncated paraboloid (\hyperref[cornwell2008]{Cornwell 2008}). Mathematically, this amounts to
+\begin{equation}
+\textbf{I}^{m} = \sum_{s=0}^{N_s-1}\textbf{I}_s^{shp} * \textbf{I}_s^{sky, \delta}
+\end{equation} 
+$\textbf{I}^{m}$ is the model sky image, $\textbf{I}_s^{shp}$ is the kernel function and $\textbf{I}_s^{sky, delta}$ is the $\delta$ function model of the sky. '*' denotes the convolution operator.
+The sky changes with the observing frequency. To model this frequency dependence, the sky is modeled as a Taylor series about a centre frequency : 
+\begin{equation}
+\textbf{I}_\nu^{m} = \sum_{t=0}^{N_t-1}w_\nu^{t}\textbf{I}_t^{sky}
+\end{equation}
+Moreover, the dependence of the sky on the frequency is modeled as a power-law with a curvature term : 
+\begin{equation}
+\textbf{I}^{sky}_\nu = \textbf{I}^{sky}_{\nu_0}{(\frac{\nu}{\nu_0})}^{{I}^{sky}_\alpha + {I}^{sky}_\beta log(\frac{\nu}{\nu_0})}
+\end{equation}
+Next, putting together equations (4) and (5) leads to : 
+\begin{equation}
+\textbf{I}_\nu^{m} = \sum_{s=0}^{N_s}\sum_{t=0}^{N_t}w_\nu^{t}[\textbf{I}_s^{shp} *\textbf{I}_{s_t}^{sky}]
+\end{equation}
+In all these equations, $w_t = (\frac{\nu - \nu_0}{\nu_0})^{t}$\\
+In Equation (7), $\textbf{I}_s$ represents a collection of $\delta$-functions that describe the sky locations and amplitudes of flux components corresponding to angular scale $s$ in the image formed by the $t^{th}$ Taylor series coefficient. (\hyperref[urvpaper]{Rau and Cornwell 2011}, section 2.2).\\
+Using the convention outlined in \hyperref[urvpaper]{Appendix A of Rau and Cornwell 2011}, the relation between the image \textbf{I}, the visibilities \textbf{V} can be expressed in Matrix notation as:
+\begin{equation}
+\textbf{V}_{n\times1}^{obs} = [\textbf{S}_{n\times m}][\textbf{F}_{m\times m}]\textbf{I}_{m\times 1}^{sky}
+\end{equation}
+	where $\textbf{V}_{n\times1}^{obs}$ is the vector containing the observed visibilities, $[\textbf{S}_{n\times m}]$ is the matrix that indicates sampling on the $(u,v)$ plane, $[\textbf{F}_{m\times m}]$ is the Fourier Transform operator and $\textbf{I}_{m\times 1}^{sky}$ is the pixilated image of the sky intensity. Using this convention, the equation relating visibilities to the sky intensity at a given frequency $\nu$ becomes : 
+\begin{equation}
+\textbf{V}_{\nu}^{obs} = \sum_{s=0}^{N_s}\sum_{t=0}^{N_t}w_\nu^{t}[\textbf{S}_{\nu}][\textbf{T}_s][\textbf{F}]\textbf{I}^{sky}_{s_{t}}
+\end{equation}
+In this case, $[\textbf{T}_s]$ is a frequency \textit{taper function}. Further description of this function can be found in \hyperref[urvpaper]{Rau and Cornwell 2011}.
+For multiple frequencies to be imaged in the same data set, we can stack the frequency weights in the matrix $[\textbf{S}_{\nu}]$. The weight function $w_\nu$ will also become a matrix in this case, $[\textbf{W}_t^{mfs}]$. Rewriting equation (9) in this form, one obtains : 
+\begin{equation}
+\textbf{V}^{obs} = \sum_{s=0}^{N_s}\sum_{t=0}^{N_t}[\textbf{W}_t^{mfs}][\textbf{S}][\textbf{T}_s][\textbf{F}]\textbf{I}^{sky}_{s_{t}}
+\end{equation}
+Here, $\textbf{V}^{obs}$ is now an $nN_c\times 1$ matrix of \textit{multi-frequency} visibilities, [\textbf{S}] is the $(u,v)$ sampling function of the multi-frequency data.
+\subparagraph{Comment on the structure of the matrix $[\textbf{W}_t^{mfs}]$}
+$[\textbf{W}_t^{mfs}]$ is diagonal $nN_c\times nN_c$ matrix of weights. It consists of $N_c$ diagonal blocks of size $n\times n$, and contains $w_\nu^{t}$ in its blocks.
+\subparagraph{Multiterm, Multi Frequency Synthesis Image formation}
+The interferometer data records visibilities from various frequencies. The MTMFS imaging algorithm plots all these visibilities on a single \textit{(u,v)} grid and recreates the dirty image set $\textbf{I}^{sky}_t$ through the matrix inversion route. This dirty images will then be fed to the MTMFS deconvolver which deconvolves the dirty images using a set of pre-defined angular scales \hyperref[ref9]{[9]}. The output will be a set of Taylor images that will encapsulate the multiterm data.
+\begin{figure}
+\centering
+\begin{minipage}[b]{.45\textwidth}
+\includegraphics[width=\linewidth]{Extended_Flat_mtmfsonly_image}
+\end{minipage}%
+\begin{minipage}[b]{.45\linewidth}
+\includegraphics[width=\textwidth]{Extended_Flat_mtmfs_only_alpha}
+\end{minipage}
+\caption{The reconstructed multiterm images using pure MTMFS for the sky shown in \hyperref[ 1]{Figure 1}}
+% % give image credits to NRAO and NCRA.
+\label{5}
+\end{figure}
+\subparagraph{Limitations of the MTMFS deconvolution algorithm}
+The MTMFS algorithm detailed in \hyperref[urvpaper]{Rau and Cornwell 2011} uses only pure interferometer data. Due to the short-spacing problem \hyperref[shortspacingprob]{(Section 2.1)}, it does not work for sources that have low surface brightness and large angular extents. However, there are important science goals that can be achieved by extending to this technique for such sources. This can be clearly seen in \hyperref[fig5]{Figure 5}, where the zeroth-order Taylor image looks almost identical to that of \hyperref[fig:Extended_Flat_image_tt0]{Figure 8}, but the spectrum is not reproduced properly at any point on the extended clous source.
+\label{section2.3}\subsection{Feathering}
+Feathering is the technique that is conventionally used to combine images from single-dish instruments and interferometers. A brief description of the feathering technique is presented below. 
+\\*\\* The composite image formed by feathering two images is obtained by computing a weighted sum in the Fourier domain and inverting the modified data to create the image. The weight given to the interferometer image is $(1-\mathcal{F}(P^{antenna}))$, where $\mathcal{F}$ is the Fourier transform and $P^{antenna}$ is the antenna pattern defined in \hyperref[section1.1]{(Section 1.1)}. The Fourier transform of the single-dish image is multiplied by the volume ratio of the interferometer \textit{restoring beam} to the single dish antenna pattern \hyperref[ref6]{[6]}. Mathematically, this amounts to : 
+\begin{equation}
+\mathcal{F}(\textbf{I}^{feathered}) = \frac{w_s V_s + w_I V_I}{w_s+w_I}
+\end{equation}
+here, $V_s$ and $V_I$ are the Fourier transforms of the single-dish and interferometer data respectively. Generally, the single-dish data is also pre-scaled by a gain parameter.
+\subparagraph{Limitations of the feathering algorithm}
+The feathering algorithm suffers from a few limitations, including:
+\begin{enumerate}
+\item It depends strongly on the single-dish gain parameter which is used to pre-scale the single-dish data before beginning the calculation. This may lead to situations where the data is scaled too much and does not reflect the physical reality.
+\item It does not allow manipulation of the visibility data from the raw data file, as it takes the final images as its input which have already been deconvolved and processed. Hence one cannot handle any potential artifacts which may crop up.
+\item It is highly sensitive to noise levels in the data. 
+\end{enumerate}
+\label{AlgoDevpt}\subsection{Putting everything together : Creation of the Algorithm}
+To overcome the problems detailed in \hyperref[section2.2]{Section 2.2} and \hyperref[section2.3]{Section 2.3}, a new algorithm is needed which is developed in this project. The implementation of the algorithm uses tools from the \texttt{scipy}\footnote{\texttt{https://scipy.org/}}, \texttt{numpy\footnote{\texttt{https://www.numpy.org}}} and \texttt{CASA}\footnote{CASA stands for Common Astronomy Software Application. Webpage : \texttt{https://casaguides.nrao.edu/index.php/Main\_Page}} software packages. All the programming was done in the \texttt{python} programming language, and all plots were created using either the \texttt{CASAviewer} tool or the \texttt{matplotlib} plotting package. 
+\subparagraph{Conventional (Cube) Radio Imaging from Interferometer Data\newline}
+
+For data from a pure interferometer, the algorithm followed for imaging is as follows \hyperref[ref10]{[10]}: \\\\
+ \textbf{Setup of the imaging procedure}
+\begin{enumerate}
+\item The \textit{uv cell size} in the image is decided. The size of a $uv$ - cell is decided by the width of the \textit{point spread function}\footnote{hereafter PSF}, which is the inverse Fourier transform of the $uv$ - sampling function $\textbf{[S]}$ \hyperref[section2.2]{(Section 2.2)}. Usually the cell size is chosen so that the main lobe of the PSF is Nyquist-sampled.
+\item The visibility data is irregularly sampled - Hence, we need to first \textit{regrid} the image along a regular grid so that the Fast Fourier Transform (FFT) algorithm will work.
+\item Some visibility points are sampled more than others - hence, \textit{weight} these visibilities appropriately to ensure that information from all the points is included in the image.
+\end{enumerate}
+\textbf{Joint Imaging and Deconvolution Procedure}
+\begin{itemize}
+\item \textbf{Major Cycle} : 
+\begin{enumerate}
+\item The raw data is regridded and weighted appropriately.
+\item The weighted, gridded data is inverse Fourier transformed to form the \textit{dirty image}. 
+\end{enumerate}
+\item \textbf{Minor Cycle} : 
+\begin{enumerate}
+\item The \textit{dirty image} is passed to a \textit{reconstruction} algorithm such as Hogb\"{o}m CLEAN/MTMFS \hyperref[ref2]{[2]}\hyperref[ref3]{[3]}\hyperref[urvthesis]{(Rau 2011, PhD thesis)}\hyperref[ref10]{[10]}. 
+\item After a number of iterations, the algorithm checks for convergence as specified in the input of the program. If the number of iterations has been reached, the cleaned image is written out. 
+\end{enumerate}
+\item \textbf{After the Minor Cycle}
+\begin{enumerate}
+\item The cleaned image (the \textit{model image}) is Fourier-transformed back onto the $(u,v)$ plane.
+\item This $(u,v)$ plot is \textit{degridded} and saved as a \textit{model} visibility data, which is subtracted from the original visibility file.
+\item The program then \textit{\textbf{loops back to the major cycle}} using this modified visibility data. The model is updated by adding the output from each execution of the minor cycle. This looping is continued till the desired threshold limit is reached. 
+\end{enumerate}
+\end{itemize}
+The algorithm developed in this project differs in a few major ways from the strategy outlined above due to the following reasons : 
+\begin{enumerate}
+\item Feathering does not accept multi-frequency data gridded on to the same plane, because the antenna power pattern changes with frequency. Hence, it is necessary to compute the Taylor series of Equation (5) at all the values of the frequencies present in the data, and include a header containing the antenna beam or power pattern information has to be supplied to the feathering routine, implemented in \texttt{CASA} as the \texttt{feather()} task. 
+\item The subtraction of the model visibilities from the available data set in the Major cycle needs separate data and not the multi-frequency one. Hence, the MTMFS deconvolver has to be accordingly modified to output the multiple model images at multiple frequencies. 
+\item The MTMFS imager needs multiple PSFs as part of the deconvolution process. These need to be calculated during the run of the imager setup. 
+\end{enumerate}
+\subparagraph{Conceptual differences between the narrow-band MTMFS algorithm and the new Wideband Multiterm Combination Algorithm}
+\begin{enumerate}
+\item The Multiterm Wideband Combination Algorithm developed in this project does a joint deconvolution, namely, that it feathers both the single-dish data as well as the PSF with the corresponding interferometer ones. In case of a single-dish telescope, the PSF is simply the antenna beam or the power pattern.
+\item In the first run of the setup, the gridded interferometer residual is first feathered with the single-dish data, then passed on to carry out the deconvolution.
+\item After the run of each minor cycle, the multiterm images are converted back to the images at all the observing frequencies as a model (hereafter called a "cube" of images) .Thereafter, the residual contribution of the single dish image is calculated by smoothing these "model" images with their respective beams at their respective frequencies. 
+\item After the run of each major cycle, the single-dish residual images are recalculated. These are then again feathered with the interferometer residuals and written out. 
+\item These composite residual images are converted back into the multiterm residuals and the cycle is begun afresh.
+\end{enumerate}
+\textbf{\underline{A detailed description of the algorithm is presented as follows}} : 
+\begin{itemize}
+\item The setup is broken into two parts: The setup for the 'Cube' image and the setup for the 'Multiterm' image.
+\item The 'Cube' setup is run first - This creates the initial cube PSFs and the initial cube of residual images.
+\item The 'MTMFS' setup is run - This creates the multiterm PSFs and the initial multiterm residuals.
+\item \textbf{Initial Setup consists of the following steps}: 
+\begin{enumerate}
+\item The PSFs from the interferometer and the single-dish image are feathered together, followed by the feathering of the single dish and interferometer residual. All the images in this step are the ones generated as 'cube' images. 
+\item The multiterm PSFs are then calculated from the Cube PSFs, and written out to the appropriate number of files.
+\item The multiterm residuals are then calculated in the same way as the PSFs and are written out to the appropriate number of files.  
+\end{enumerate}
+\item \textit{The imaging and deconvolution part}:\\
+\textbf{While the imager has not converged}: 
+\begin{enumerate}
+\item Run the multiterm Minor cycle using the PSFs calculated in the initial setup and the residual from the previous iteration. For the first iteration, use the residual calculated in the initial setup.
+\item Once the multiterm minor cycle is done, convert the multiterm model to a cube model and write it out to a file.
+\item With this model, run the next (Cube) Major cycle.
+\item Calculate the single-dish residual using the smoothed model output above and feather it with the interferometer residual cube.
+\item Convert this feathered cube residual into its multiterm equivalent and proceed to the next iteration. 
+\end{enumerate} 
+\end{itemize}
+\subparagraph{Salient features of this algorithm}
+\begin{enumerate}
+\item Note that, the minor cycle employs the multiterm deconvolution strategy whereas the major cycle uses a cube Gridding/FFT path.
+\item Note that, while feathering, all the residuals are always in cube form.
+\item Note that, all the cube data which were used during feathering has to be converted back into its multiterm form before being passed to the minor cycle.  
+\end{enumerate}
+\subsection{What this algorithm accomplishes}
+A run of this algorithm produces the following outputs : 
+\begin{itemize}
+\item A number of images equal to the number of terms in the Taylor series is produced.
+\item Residual images and model images equaling the number of terms in the Taylor series are produced by the multiterm algorithm, plus a cube residual and model produced by the cube portion of the major cycle.
+\item A spectral index map is produced by the multiterm portion of the algorithm, which shows the spectral index of the sky for each pixel in the image. Another image that holds the errors for the index estimates per pixel is also created. 
+\item For $n$ terms, this algorithm creates $2n-1$ multiterm PSFs and one cube PSF.
+\end{itemize}
+\subparagraph{Significance of each output}
+\begin{enumerate}
+\item The images produced as output by this algorithm are the intensities $\textbf{I}^{sky}_t$ in Equation(5).
+\item The residual images are equivalent to the iterations of the Fourier transform of the visibility matrix $\textbf{V}^{obs}$ in Equation (10).
+\item The spectral index map is the solution of Equation (6). The maps are basically the pixel-wise estimate of the terms $\textbf{I}_\alpha$ and $\textbf{I}_\beta$. 
+\item The spectral PSFs are the inverse Fourier transform of the sampling matrix $[\textbf{S}]$.
+\end{enumerate}
+For the sky shown in \figurename{ 1}, the output images are shown in \figurename{ 6} (Larger images are presented in the \hyperref[section3]{Results} section).
+\begin{figure}
+\centering
+\begin{minipage}[b]{.5\textwidth}
+\includegraphics[width=\linewidth]{Extended_Flat_image_tt0}
+\end{minipage}%
+\begin{minipage}[b]{.55\linewidth}
+\includegraphics[width=\textwidth]{Extended_Flat_image_tt1}
+\end{minipage}
+\caption{The reconstructed multiterm images for the sky shown in \hyperref[ 1]{Figure 1}}
+% % give image credits to NRAO and NCRA.
+\label{7}
+\end{figure}
+
+\begin{figure}
+\begin{minipage}[b]{.5\textwidth}
+\includegraphics[width=\linewidth]{Extended_flat_trueim_withindices}
+\end{minipage}%
+\begin{minipage}[b]{.5\linewidth}
+\includegraphics[width=\textwidth]{Extended_spectral_trueim_withindices}
+\end{minipage}
+\caption{Two different simulated "sky images" with different spectral indices}
+\label{ 8}
+\end{figure}
+\section{Testing the algorithm : Results and Plots}
+This new algorithm was tested on two different test cases, both of which derive from \hyperref[ 1]{Figure 1} : \label{section3}
+\begin{enumerate}
+\item A \textit{flat-spectrum} sky, where the sky does not change with frequency. In this case, the plot of the spectrum must show a value of zero for every pixel
+\item A \textit{steep-spectrum} sky, where each object shown in \hyperref[ 1]{Figure 1} has a nonzero spectral index. The spectral indices are indicated on the true sky image.
+\end{enumerate}
+Both these "true skies" are shown in \hyperref[ 7]{Figure 7}.
+
+\subsection{A Flat-Spectrum Sky}
+Here, the reconstructed images from the Flat-spectrum sky are shown (true sky image shown in \hyperref[7]{Figure 7-left panel})
+ \begin{figure}[H]
+\centering
+\includegraphics[width=0.5\linewidth]{Extended_Flat_image_tt0}
+\caption{The zero-order Image of the Flat-spectrum sky}
+\label{fig:Extended_Flat_image_tt0}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{Extended_Flat_image_tt1}
+\caption{The $1^{st}$ order Image of the flat-spectrum sky}
+\label{fig:Extended_Flat_image_tt1}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{Extended_Flat_alpha}
+\caption{The pixel-wise spectral map of the flat-spectrum sky}
+\label{fig:Extended_Flat_alpha}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\linewidth]{Extended_Flat_alpha_error}
+\caption{Map showing error on the spectrum estimate for Flat-spectrum sky}
+\label{fig:Extended_Flat_alpha_error}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\linewidth]{Extended_Flat_residual_tt0}
+\caption{The zero-order residual image for Flat-spectrum sky}
+\label{fig:Extended_Flat_residual_tt0}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{Extended_Flat_residual_tt1}
+\caption{The first-order residual for the Flat-spectrum sky}
+\label{fig:Extended_Flat_residual_tt1}
+\end{figure}
+\subsection{A Steep-Spectrum Sky}
+Here, the reconstructed images from the Steep-spectrum sky are shown (true sky image shown in \hyperref[7]{Figure 7-right panel})
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{Extended_Spectral_image_tt0}
+\caption{The zero-order image of the steep-spectrum sky}
+\label{fig:Extended_Spectral_image_tt0}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{Extended_Spectral_image_tt1}
+\caption{The first-order image of the steep-spectrum sky}
+\label{fig:Extended_Spectral_image_tt1}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\linewidth]{Extended_Spectral_alpha}
+\caption{The pixel-wise spectral map of the steep-spectrum sky}
+\label{fig:Extended_Spectral_alpha}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{Extended_Spectral_alpha_error}
+\caption{Map showing error on the spectrum estimate for Steep-spectrum sky}
+\label{fig:Extended_Spectral_alpha_error}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\linewidth]{Extended_Spectral_residual_tt0}
+\caption{The zero-order residual image of the steep-spectrum sky}
+\label{fig:Extended_Spectral_residual_tt0}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{Extended_Spectral_residual_tt1}
+\caption{The first-order residual image for a steep-spectrum sky}
+\label{fig:Extended_Spectral_residual_tt1}
+\end{figure}
+\subsection{Comments and Discussion on the Results}
+From the figures presented in the preceding section, it is seen that the algorithm works well for the given data set. 
+\begin{enumerate}
+\item The algorithm for estimating the pixel-by-pixel spectral maps (figures 9 and 15) work well only at the centre of the extended cloud. This is because the spectrum in each pixel is the ratio of the terms $\textbf{I}_0$ and $\textbf{I}_1$ (Equation 5). Behaviour of these functions around the edges can be unpredictable, causing the estimate to go wrong.
+\item The deconvolver has to run only within a narrow range with respect to the number of iterations, else there will either be insufficient convergence (if the number of iterations is too small) or artifacts in the spectral map (if the number of iterations is too large).
+\item The single dish gain (pre-scaling) parameter also determines the performance of the algorithm, outside of a range of values. If the value is given to be too small, it can actually suppress the interferometer $(u,v)$ data near the $(0,0)$ region and cause the feathered data to become nearly zero in value. If its value is too large ($>\sim 15$), it will wash out the interferometer data and make the PSF too broad for a proper deconvolution to occur.
+\end{enumerate} 
+\section{Summary of the Project}
+The project aimed to achieve the following goals : 
+\begin{enumerate}
+\item Solve the short-spacing problem encountered by interferometers.
+\item To combine the wideband multi-frequency data from a single-dish radio telescope and interferometer.
+\item To evaluate the efficacy of a joint-deconvolution algorithm where the single-dish data was inserted into the interferometer data \textit{before} the creation of an image, as compared to the traditional approach of a \textit{post-facto} combination.
+\item To estimate the spectrum of extended sources by creating a wideband image.
+\item To prototype and test the working of an algorithm in order to accomplish these tasks.
+\item To try this algorithm on real data from an actual astronomical observation.
+\end{enumerate}
+All the objectives except the last one were achieved in the project. The last one can be achieved through a fairly simple extension of this work, which will be tried as and when the data from both these telescopes becomes available.
+\section{Knowledge and Skills gained during this Project}
+\subsection{New concepts learned during the project}
+\begin{itemize}
+\item \textbf{Radio Interferometry} : In-depth knowledge of the technique and mathematics of radio interferometry, including but not limited to computational implementation of 2-D Fourier transforms, Van Cittert-Zernicke theorem, $(u,v)$ sampling, synthesis imaging with radio interferometer telescopes.
+\item \textbf{Radio Imaging} : Process of creation of an image from interferometer and single-dish data, role of deconvolution in synthesis imaging, multi-frequency synthesis imaging, imaging algorithms - Hogb\"{o}m CLEAN and MTMFS. 
+\item \textbf{Image Processing} : Concept of a pixel, image cell size, notion of linear time-invariant and linear shift-invariant systems, 2-D Fourier transforms, idea behind use of a specific kernel for detecting specific features in an image, image gridding, image weighting and its impact on the final synthesised image, combination of two images in the Fourier domain by means of a weighted average.
+\item \textbf{Algorithms and Data structures} : Their role in signal/image processing, implementation of convolution and deconvolution in well-known libraries like \texttt{python's scipy} and  \texttt{numpy}, image representation as a 2-D array data structure and its manipulation in both the image domain and the Fourier domain, understanding the basic theory of the Fast-Fourier-Transform (FFT) algorithm.
+\item \textbf{Optimisation and Least-Sqaures minimisation} : Understanding the condition for applicability of the least-squares optimisation method, deriving the matrix conditions for calculating the coefficients.
+\end{itemize}
+\subsection{Programming skills gained during this project}
+\begin{itemize}
+\item \textbf{Programming with} \texttt{python} : In-depth understanding and application of toolboxes in \texttt{python's scipy} and  \texttt{numpy} modules, programming in the \texttt{CASA} and \texttt{ipython} interactive IDE environment.
+\item \textbf{Numerical analysis and computation with }\texttt{python} : Fourier Transforms, convolution (both in the spatial domain and Fourier-transformed space), Calculation of autocorrelation function and estimating the power spectrum from it \textit{via} the Weiner-Khinchin theorem, simulation of a simple antenna pattern and using it to create a simulated image, optimisation and least-squares minimisation - implement and demonstrate a program to fit a polynomial to a bunch of noisy data points using \texttt{python's linalg} library and comparing it with the standard tool package available in \texttt{numpy} and evaluating which is better. 
+\item \textbf{Data Structures with }\texttt{python} : Handling of images in python, image cubes as a stack of multiple arrays, python's \texttt{copy} module, shallow copies and deep copies in python, different kinds of variable bindings in python (bind-to-variable name \textit{vs.} creating a separate data structure), handling of python's \texttt{dictionary} data type, creating a new data structure using python. 
+\item \textbf{Graphics and plotting with }\texttt{python} : Use of \texttt{matplotlib} plotting package from python, plotting of 1-D, 2-D and 3-D plots using this package, interactive plotting with \texttt{matplotlib's ion()} command, plotting images and intensity maps.
+\item \textbf{Familiarisation of the }\texttt{CASA}\textbf{ program}: use of \texttt{CASA's tclean()} task, image plotting with \texttt{CASA} and understanding how it implements imaging and deconvolution algorithms.  
+\end{itemize}
+\subsection{Practical Field Training}
+\begin{itemize}
+\item \textbf{Training} : Visiting the site of the Very Large Array (VLA) radio telescope, understanding the functioning of the antennas and the associated hardware as well as software backends that go with it.
+\item \textbf{Public Outreach Programmes} : Give two guided tours of the VLA to the public on its open day, explaining all the salient features of the facility.
+\end{itemize}
+\section{Acknowledgements}
+This project was conducted under the National Radio Astronomy's Summer Student Research Assistantship programme, under the guidance of Dr. Urvashi Rau Venkata. This project also fulfills the compulsory summer training/internship requirements, mandated as part of the B. Tech (Hons.) course in Instrumentation Engineering, under the Dept. of Electrical Engineering, Indian Institute of Technology Kharagpur. \\Many thanks to Sanjay Bhatnagar and Kumar Golap for their help in resolving several technical issues. The author wishes to acknowlegde the great amount of help provided by Amy Mioduszewski in her role as the Coordinator of the Summer Student Program at the NRAO. The National Radio Astronomy Observatory is a facility of the National Science
+Foundation operated under cooperative agreement by Associated Universities,
+Inc. 
+\section{References and Bibliography}
+\begin{enumerate}
+\label{ref1}\item Wikipedia webpage on radio telescopes : \texttt{https://en.wikipedia.org/wiki/Radio\_telescope}
+\label{ref2} \item "Low Frequency Radio Astronomy", \textit{ed.} Jayaram N. Chengalur, Yashwant Gupta and K.S. Dwarakanath, National Centre for Radio Astrophysics, May 2003. 
+\label{ref3} \item "Interferometry and Synthesis in Radio Astronomy", Thompson \textit{et. al}, 3$^{rd}$ ed., Springer International Publishing , June 2016. 
+\label{ref4}\item  Wikipedia webpage on interferometry : \texttt{https://en.wikipedia.org/wiki/Interferometry}
+\label{ref5}\item "Statistical Optics", by M. Born and E. Wolf, Dover Publications, 1959.
+\label{ref6}\item NRAO's CASAguides webpage on feathering : \\ \texttt{https://casa.nrao.edu/Release3.4.0/docs/userman/UserManse30.html}
+\label{urvpaper}\item "A multi-scale multi-frequency deconvolution algorithm
+for synthesis imaging in radio interferometry", U. Rau and T. J. Cornwell, \textit{Astronomy and Astrophysics} 532, A71 (June 2011).
+\label{urvthesis}\item "Parameterized Deconvolution For Wide-Band Radio Synthesis Imaging", Urvashi Rau Venkata, Ph.D Thesis, New Mexico Institute of Mining and Technology (2011)
+\label{ref9} \item CASA guide on the MTMFS deconvolver and \texttt{tclean()} task : \\
+\texttt{https://casaguides.nrao.edu/index.php/TCLEAN\_and\_ALMA}
+\label{ref10}\item Talk on Wideband Imaging and Deconvolution : \\ \texttt{https://science.nrao.edu/science/meetings/2014/\\14th-synthesis-imaging-workshop/lectures-files/SIW2014\_WidebandImaging\_UR.pdf}
+\end{enumerate}
+\section{Appendix}
+\subsection{Further extension of this work}
+This work dealt with combination of data from both the interferometer as well as the single-dish instrument. As an important spin-off, the code can be modified to do the whole procedure for either the pure single-dish image or the pure interferometer image for handling cube images (multiterm imaging algorithms exist for pure interferometers). As a brief example of this, the plots (the two images, spectrum and spectral error) from the single dish-only data is presented below : 
+\\
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{singledishonly_image_tt0}
+\caption{The zero-order image of the sky using only the single-dish data in the Wideband Joint deconvolution algorithm}
+\label{fig:singledishonly_image_tt0}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{singledishonly_image_tt1}
+\caption{The first-order image of the sky using only the single-dish data in the Wideband Joint deconvolution algorithm}
+\label{fig:singledishonly_image_tt1}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{singledishonly_alpha}
+\caption{Pixel-wise spectrum map estimated by the algorithm, using only single-dish data.}
+\label{fig:singledishonly_alpha}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\linewidth]{singledishonly_alphaerror}
+\caption{Pixel-wise map showing error in the spectrum estimate using only single-dish data}
+\label{fig:SD_alpha_error}
+\end{figure}
+As can be seen, this code works very well for the pure single-dish data as well for the combination in terms of estimating the spectrum. As expected, the resolution on the objects seen in the plot is very coarse as compared to the case where the interferometer visibilities were also present. This combination algorithm will prove useful to the ALMA\footnote{The Atacama Large Millimeter Array} and possibly the Square Kilometer Array (SKA) radio telescope which will come up in the near future.
+\subsection{Location of the Source Code and Data Use}
+The source code of this entire project (along with a few sample data sets) is open for viewing can be accessed online, upon request to either of the two persons : (The whole project will be released online at a future date)
+\begin{itemize}
+\item Dr. Urvashi Rau Venkata, Associate Scientist, CS, National Radio Astronomy Observatory, 1003 Lopezville Rd., Socorro, New Mexico 87801.\\\textbf{email} : \texttt{rurvashi@aoc.nrao.edu}
+\item Nikhil Vijay Naik, $4^{th}$ year undergraduate student, Department of Electrical Engineering, Indian Institute of Technology, Kharagpur, West Bengal, India - 721302.\\\textbf{email} : \texttt{nikhilnaik@iitkgp.ac.in}
+\end{itemize}
+\end{document}
+
