@@ -1,0 +1,518 @@
+%%
+%% Beginning of file 'Naik_Rau_Draft0.tex'
+%%
+%% Modified 2017, August
+%%
+%% This is a sample manuscript marked up using the
+%% AASTeX v6.1 LaTeX 2e macros.
+%%
+%% AASTeX is now based on Alexey Vikhlinin's emulateapj.cls 
+%% (Copyright 2000-2015).  See the classfile for details.
+
+%% AASTeX requires revtex4-1.cls (http://publish.aps.org/revtex4/) and
+%% other external packages (latexsym, graphicx, amssymb, longtable, and epsf).
+%% All of these external packages should already be present in the modern TeX 
+%% distributions.  If not they can also be obtained at www.ctan.org.
+
+%% The first piece of markup in an AASTeX v6.x document is the \documentclass
+%% command. LaTeX will ignore any data that comes before this command. The 
+%% documentclass can take an optional argument to modify the output style.
+%% The command below calls the preprint style  which will produce a tightly 
+%% typeset, one-column, single-spaced document.  It is the default and thus
+%% does not need to be explicitly stated.
+%%
+%%
+%% using aastex version 6.1
+\documentclass[twocolumn]{aastex61}
+\usepackage{float}
+%% The default is a single spaced, 10 point font, single spaced article.
+%% There are 5 other style options available via an optional argument. They
+%% can be envoked like this:
+%%
+%% \documentclass[argument]{aastex61}
+%% 
+%% where the arguement options are:
+%%
+%%  twocolumn   : two text columns, 10 point font, single spaced article.
+%%                This is the most compact and represent the final published
+%%                derived PDF copy of the accepted manuscript from the publisher
+%%  manuscript  : one text column, 12 point font, double spaced article.
+%%  preprint    : one text column, 12 point font, single spaced article.  
+%%  preprint2   : two text columns, 12 point font, single spaced article.
+%%  modern      : a stylish, single text column, 12 point font, article with
+%% 		  wider left and right margins. This uses the Daniel
+%% 		  Foreman-Mackey and David Hogg design.
+%%
+%% Note that you can submit to the AAS Journals in any of these 6 styles.
+%%
+%% There are other optional arguments one can envoke to allow other stylistic
+%% actions. The available options are:
+%%
+%%  astrosymb    : Loads Astrosymb font and define \astrocommands. 
+%%  tighten      : Makes baselineskip slightly smaller, only works with 
+%%                 the twocolumn substyle.
+%%  times        : uses times font instead of the default
+%%  linenumbers  : turn on lineno package.
+%%  trackchanges : required to see the revision mark up and print its output
+%%  longauthor   : Do not use the more compressed footnote style (default) for 
+%%                 the author/collaboration/affiliations. Instead print all
+%%                 affiliation information after each name. Creates a much
+%%                 long author list but may be desirable for short author papers
+%%
+%% these can be used in any combination, e.g.
+%%
+%% \documentclass[twocolumn,linenumbers,trackchanges]{aastex61}
+
+%% AASTeX v6.* now includes \hyperref support. While we have built in specific
+%% defaults into the classfile you can manually override them with the
+%% \hypersetup command. For example,
+%%
+%%\hypersetup{linkcolor=red,citecolor=green,filecolor=cyan,urlcolor=magenta}
+%%
+%% will change the color of the internal links to red, the links to the
+%% bibliography to green, the file links to cyan, and the external links to
+%% magenta. Additional information on \hyperref options can be found here:
+%% https://www.tug.org/applications/hyperref/manual.html#x1-40003
+
+%% If you want to create your own macros, you can do so
+%% using \newcommand. Your macros should appear before
+%% the \begin{document} command.
+%%
+\newcommand{\vdag}{(v)^\dagger}
+\newcommand\aastex{AAS\TeX}
+\newcommand\latex{La\TeX}
+
+%% Reintroduced the \received and \accepted commands from AASTeX v5.2
+\received{TBD}
+\revised{\today}
+\accepted{TBD}
+%% Command to document which AAS Journal the manuscript was submitted to.
+%% Adds "Submitted to " the arguement.
+\submitjournal{ApJ}
+
+%% Mark up commands to limit the number of authors on the front page.
+%% Note that in AASTeX v6.1 a \collaboration call (see below) counts as
+%% an author in this case.
+%
+%\AuthorCollaborationLimit=3
+%
+%% Will only show Schwarz, Muench and "the AAS Journals Data Scientist 
+%% collaboration" on the front page of this example manuscript.
+%%
+%% Note that all of the author will be shown in the published article.
+%% This feature is meant to be used prior to acceptance to make the
+%% front end of a long author article more manageable. Please do not use
+%% this functionality for manuscripts with less than 20 authors. Conversely,
+%% please do use this when the number of authors exceeds 40.
+%%
+%% Use \allauthors at the manuscript end to show the full author list.
+%% This command should only be used with \AuthorCollaborationLimit is used.
+
+%% The following command can be used to set the latex table counters.  It
+%% is needed in this document because it uses a mix of latex tabular and
+%% AASTeX deluxetables.  In general it should not be needed.
+%\setcounter{table}{1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% The following section outlines numerous optional output that
+%% can be displayed in the front matter or as running meta-data.
+%%
+%% If you wish, you may supply running head information, although
+%% this information may be modified by the editorial offices.
+\shorttitle{The Wideband Multiterm Combination Algorithm}
+\shortauthors{Naik and Rau}
+%%
+%% You can add a light gray and diagonal water-mark to the first page 
+%% with this command:
+% \watermark{text}
+%% where "text", e.g. DRAFT, is the text to appear.  If the text is 
+%% long you can control the water-mark size with:
+%  \setwatermarkfontsize{dimension}
+%% where dimension is any recognized LaTeX dimension, e.g. pt, in, etc.
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% This is the end of the preamble.  Indicate the beginning of the
+%% manuscript itself with \begin{document}.
+
+\begin{document}
+
+\title{A Joint Deconvolution Algorithm to combine single dish and
+interferometer data for wideband multi-term imaging}
+
+%% LaTeX will automatically break titles if they run longer than
+%% one line. However, you may use \\ to force a line break if
+%% you desire. In v6.1 you can include a footnote in the title.
+
+%% A significant change from earlier AASTEX versions is in the structure for 
+%% calling author and affilations. The change was necessary to implement 
+%% autoindexing of affilations which prior was a manual process that could 
+%% easily be tedious in large author manuscripts.
+%%
+%% The \author command is the same as before except it now takes an optional
+%% arguement which is the 16 digit ORCID. The syntax is:
+%% \author[xxxx-xxxx-xxxx-xxxx]{Author Name}
+%%
+%% This will hyperlink the author name to the author's ORCID page. Note that
+%% during compilation, LaTeX will do some limited checking of the format of
+%% the ID to make sure it is valid.
+%%
+%% Use \affiliation for affiliation information. The old \affil is now aliased
+%% to \affiliation. AASTeX v6.1 will automatically index these in the header.
+%% When a duplicate is found its index will be the same as its previous entry.
+%%
+%% Note that \altaffilmark and \altaffiltext have been removed and thus 
+%% can not be used to document secondary affiliations. If they are used latex
+%% will issue a specific error message and quit. Please use multiple 
+%% \affiliation calls for to document more than one affiliation.
+%%
+%% The new \altaffiliation can be used to indicate some secondary information
+%% such as fellowships. This command produces a non-numeric footnote that is
+%% set away from the numeric \affiliation footnotes.  NOTE that if an
+%% \altaffiliation command is used it must come BEFORE the \affiliation call,
+%% right after the \author command, in order to place the footnotes in
+%% the proper location.
+%%
+%% Use \email to set provide email addresses. Each \email will appear on its
+%% own line so you can put multiple email address in one \email call. A new
+%% \correspondingauthor command is available in V6.1 to identify the
+%% corresponding author of the manuscript. It is the author's responsibility
+%% to make sure this name is also in the author list.
+%%
+%% While authors can be grouped inside the same \author and \affiliation
+%% commands it is better to have a single author for each. This allows for
+%% one to exploit all the new benefits and should make book-keeping easier.
+%%
+%% If done correctly the peer review system will be able to
+%% automatically put the author and affiliation information from the manuscript
+%% and save the corresponding author the trouble of entering it by hand.
+
+\correspondingauthor{Nikhil Naik}
+\email{nikhilnaik@iitkgp.ac.in, rurvashi@nrao.edu}
+
+\author{Nikhil Naik}
+\affil{Indian Institute of Technology Kharagpur,
+Kharagpur, West Bengal, India - 721302 \\
+}
+
+\author{Urvashi Rau}
+\affiliation{National Radio Astronomy Observatory, 
+%PO Box O, 1003 Lopezville Rd \\
+Socorro, NM 87801, USA}
+%\collaboration{(AAS Journals Data Scientists collaboration)}
+
+%% Note that the \and command from previous versions of AASTeX is now
+%% depreciated in this version as it is no longer necessary. AASTeX 
+%% automatically takes care of all commas and "and"s between authors names.
+
+%% AASTeX 6.1 has the new \collaboration and \nocollaboration commands to
+%% provide the collaboration status of a group of authors. These commands 
+%% can be used either before or after the list of corresponding authors. The
+%% argument for \collaboration is the collaboration identifier. Authors are
+%% encouraged to surround collaboration identifiers with ()s. The 
+%% \nocollaboration command takes no argument and exists to indicate that
+%% the nearby authors are not part of surrounding collaborations.
+
+%% Mark off the abstract in the ``abstract'' environment. 
+\begin{abstract}
+Imaging in Radio Astronomy is done by the means of either Single-Dish Radio Telescopes or Interferometric
+Arrays. Image Formation with a radio interferometer offers excellent angular resolutions but suffers from
+the short-spacing problem, where sources with large angular size and low surface brightness are not seen in the image. On the other hand, single-dish radio telescopes offer very coarse resolution, but respond
+very well to large angular scales.
+This paper describes an algorithm to combine data from these two types of telescopes in order to bring about a good reconstruction of the true sky image at a wide range of frequencies. Contrary to traditional methods that only combine interferometer and single dish images after their respective reconstructions, our method combines the image and the point spread function before deconvolution in a scheme that can be interpreted simply as a choice of image weighting. This allows the algorithm to be relatively immune to scale factors traditionally used to align single dish and interferometer data in the spatial frequency domain.  This algorithm also naturally extends to wide-band multi-term imaging and can be used to reconstruct the spectrum of the sky at spatial scales probed primarily by the single dish while also preserving high resolution information from the interferometer data. The algorithm can also be run on only the wideband single dish data to produce a reconstruction of spectral structure at an angular resolution better than that offered by the lowest frequency single dish image. Results for all of the above are demonstrated via simulations between 1-2 GHz for the VLA and GBT.
+\end{abstract}
+
+%% Keywords should appear after the \end{abstract} command. 
+%% See the online documentation for the full list of available subject
+%% keywords and the rules for their use.
+\keywords{Radio Astronomy --- Imaging --- 
+Deconvolution Algorithms --- Wideband Imaging}
+
+%% From the front matter, we move on to the body of the paper.
+%% Sections are demarcated by \section and \subsection, respectively.
+%% Observe the use of the LaTeX \label
+%% command after the \subsection to give a symbolic KEY to the
+%% subsection for cross-referencing in a \ref command.
+%% You can use LaTeX's \ref and \label commands to keep track of
+%% cross-references to sections, equations, tables, and figures.
+%% That way, if you change the order of any elements, LaTeX will
+%% automatically renumber them.
+
+%% We recommend that authors also use the natbib \citep
+%% and \citet commands to identify citations.  The citations are
+%% tied to the reference list via symbolic KEYs. The KEY corresponds
+%% to the KEY in the \bibitem in the reference list below. 
+
+\section{Introduction} \label{sec:intro}
+\subsection{Imaging with single-dish radio telescopes}
+Single-Dish radio telescopes, such as the GBT Radio telescope are designed to
+respond linearly to the intensity of the radiation received from a point in the sky. The strategy followed to create
+an image is as follows :\\
+The antenna beam sweeps across the region of interest. The response of each point on the sky as the beam sweeps
+across it is summed and put into a pixel. This is carried out for the whole Field-of-View (FOV) till the region has
+been fully sampled. This strategy is known colloquially as "basket-weaving".
+Mathematically, the basket-weaving technique is equivalent to a convolution, where the antenna beam is convolved with the true sky image in order to form the image :
+\begin{equation}
+I^{Image} = I^{sky} * P^{antenna}
+\end{equation}
+\textbf{Properties of Single-dish images}:
+From the theory of diffraction, it is known %\hyperref[ref2]{\hyperref[ref2]{[2]}}\hyperref[ref3]{[3]}
+ that the highest possible resolution in an image  that is created from an aperture of diameter \textit{D} for radiation of wavelength $\lambda$ is given by 
+\begin{equation}
+\theta \sim \frac{\lambda}{D}
+\end{equation} 
+From this equation, it is immediately seen that the resolution for radio frequencies is rather coarse. For the GBT dish with a diameter of 100m, the resolution at $\nu\sim$ 1.5GHz is still $\sim5$ arcmin. Hence, single dish radio-telescopes are not useful for obtaining high-resolution radio images. This logically leads to the technique of interferometry for conducting high-resolution imaging.
+\subsection{Imaging with Interferometers}
+Interferometric arrays are telescopes that have multiple elements or antennas. The radiation received at each antenna is combined using signal-processing software/hardware for creating the image - this technique is called 'Interferometry'. Each pair of antennas measures an \textit{interference fringe}, and $n$ antennas give $\frac{n(n-1)}{2}$ such fringes. Measurement of these fringes leads to the mathematical reconstruction of the \textit{Visibility Function V(u,v)}. By the Van Cittert - Zernicke theorem of optics, it is known that the Intensity of radiation in the plane\footnote{If the FOV is too large, the assumption of the sky being a plane does break down} of the sky and the visibility function are related by a two-dimensional Fourier transform.
+Mathematically, we write 
+\begin{equation}
+V(u,v) = \int\int\frac{I(l,m)}{\sqrt{1-l^2 - m^2}} e^{-2\pi i [lu+mv]} du dv
+\end{equation} 
+Where $V(u,v)$ is the visibility function, $I(l,m)$ is the intensity in space, $l, m$ are the \textit{direction cosines} and $(u,v)$ are the \textit{Fourier-domain} coordinates.\\\\
+\textbf{Properties of interferometer images}
+From Equation (2), we know that the finest resolution that can be measured by an aperture of diameter D is $\lambda/D$. In case of an interferometer, $D$ is the \textit{longest baseline}, defined as the maximum separation between a pair of antennas, which is unconstrained. 
+This makes the technique of interferometry extremely powerful and it leads to very high-resolution images (arcsecond or sub-arcsecond) of the radio sky.
+As can be seen in \hyperref[  2]{\figurename{ 2}}
+the image of the same sky as seen by a single-dish radio telescope and an interferometer can look very different in terms of resolution.
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{../Extended_Flat_true_im}
+\caption{Simulated Image of the True Sky}
+\label{ 1}
+\end{figure}%
+\begin{figure}
+\centering
+\includegraphics[width=0.6\linewidth]{../Extended_Flat_SID_imgPPT}
+\includegraphics[width = 0.6\linewidth]{../VLA_img_cropped}
+\caption{Simulated Image of the sky, from a single dish 
+		and the sky image from an interferometer}
+\label{ 2}
+\end{figure}
+\subsection{Motivation Behind the development of the WMCA algorithm}
+As was seen in \hyperref[  2]{\figurename{ 2}}, a single-dish instrument provides images with very coarse resolution. An interferometer provides images with excellent resolution, however, it does not faithfully reproduce objects that have very large angular sizes and low surface brightness. Scientific goals of various kinds can be achieved by combining best of what these two classes of instruments have to offer.\\Techniques such as \textit{feathering} exist to combine the two kinds of images. However, these suffer from many problems, rendering them insufficient as a reliable technique for image combination. These include : 
+\begin{enumerate}
+\item It depends heavily on the arbitrary scaling of single-dish data, which may not always lead to physically sensible results.
+\item It works only for data taken at exactly one frequency. It fails to utilise the vast potential of multi-frequency data taken with modern telescopes such as the VLA or the GMRT. 
+\item Wideband Imaging algorithms exist \hyperref[urvpaper]{(Rau and Cornwell 2011)}\hyperref[urvthesis]{(Rau 2011, PhD thesis)} for pure interferometer data, but due to the inherent limitations of imaging with an interferometer (called the \textit{short spacing problem}), these are not useful for sources which have large angular extent. 
+\end{enumerate}
+\textbf{The Short Spacing Problem}
+ As any two antennas must always be separated by a finite nonzero distance, the values $u$ and $v$ can never be simultaneously zero. Hence, the smallest spacings always remain un-sampled.
+As sources with large angular extent have visibility values clustered around the origin, they are always undersampled and missed by the interferometer. This is clearly seen in \hyperref[  2]{\figurename{ 2}}.\\
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\linewidth]{../FFTGBTimg.png}
+\includegraphics[width=0.7\linewidth]{../FFTVLAimg.png}
+\caption{The short spacing-problem. Note the hole in the Fourier Transform of the interferometer image (VLA), which is filled by the single-dish image (GBT)}
+% % give image credits to NRAO and NCRA.
+\label{ 3}
+\end{figure}
+The short spacing problem is illustrated in \hyperref[ 3]{\figurename{ 3}}.
+In this figure, it can be seen that the Fourier transform of the interferometer image insufficiently samples the region around $(0, 0)$. This is called the \textit{central uv-hole}. On the other hand, the single-dish data samples this precise region very well (bottom half), but lacks the data at large values of
+$(u,v)$. This is overcome using the feathering technique, but it suffers from a few problems. The technique and its shortcomings are discussed in \hyperref[Sec:Section2]{Section 2}.
+\section{Previous work and development of the WMCA algorithm}\label{Sec:Section2}
+\subsection{Feathering}
+Feathering is the technique that is conventionally used to combine images from single-dish instruments and interferometers. The composite image formed by feathering is obtained by computing a weighted sum in the Fourier
+domain and inverting the modified data to create the image. The weight given to the interferometer image is $(1-\mathcal{F}(P^{antenna}))$. $\mathcal{F}$ is the Fourier transform and $P^{antenna}$ is the antenna pattern from \hyperref[sec:intro]{Section 1}. The Fourier transform of the single-dish image is multiplied by the volume ratio of the interferometer restoring beam to the single dish antenna pattern. Mathematically, this can be written as : 
+\begin{equation}
+\mathcal{F}(\textbf{I}^{feathered}) = \frac{w_s V_s + w_I V_I}{w_s+w_I}
+\end{equation}
+here, $V_s$ and $V_I$ are the Fourier transforms of the single-dish and interferometer data respectively. Generally, the single-dish data is also pre-scaled by a gain parameter.\\\\
+\textbf{Limitations of the feathering algorithm}
+The feathering algorithm suffers from a few limitations, including:
+\begin{enumerate}
+\item It depends strongly on the single-dish gain parameter which is used to pre-scale the single-dish data before beginning the calculation. This may lead to situations where the data is scaled too much and does not reflect the physical reality.
+\item It does not allow manipulation of the visibility data from the raw data file, as it takes the final images as its input which have already been deconvolved and processed. Hence one cannot handle any potential artifacts which may crop up.
+\item It is highly sensitive to noise levels in the data. 
+\end{enumerate}
+\subsection{Multiterm, Multi-Frequency Synthesis (MTMFS) Algorithm}
+Any radio image containing information on multiple angular scales can be written as a linear sum of a \textit{sky model} comprising of $\delta$ functions, and a \textit{smoothing kernel} which is usually a tapered, inverted, truncated paraboloid (\hyperref[cornwell2008]{Cornwell 2008}). Mathematically, this amounts to
+\begin{equation}
+\textbf{I}^{m} = \sum_{s=0}^{N_s-1}\textbf{I}_s^{shp} * \textbf{I}_s^{sky, \delta}
+\end{equation} 
+$\textbf{I}^{m}$ is the model sky image, $\textbf{I}_s^{shp}$ is the kernel function and $\textbf{I}_s^{sky, delta}$ is the $\delta$ function model of the sky. '*' denotes the convolution operator.
+The sky changes with the observing frequency. To model this frequency dependence, the sky is modeled as a Taylor series about a centre frequency : 
+\begin{equation}
+\textbf{I}_\nu^{m} = \sum_{t=0}^{N_t-1}w_\nu^{t}\textbf{I}_t^{sky}
+\end{equation}
+Moreover, the dependence of the sky on the frequency is modeled as a power-law with a curvature term : 
+\begin{equation}
+\textbf{I}^{sky}_\nu = \textbf{I}^{sky}_{\nu_0}{(\frac{\nu}{\nu_0})}^{{I}^{sky}_\alpha + {I}^{sky}_\beta log(\frac{\nu}{\nu_0})}
+\end{equation}
+Next, putting together equations (4) and (5) leads to : 
+\begin{equation}
+\textbf{I}_\nu^{m} = \sum_{s=0}^{N_s}\sum_{t=0}^{N_t}w_\nu^{t}[\textbf{I}_s^{shp} *\textbf{I}_{s_t}^{sky}]
+\end{equation}
+In all these equations, $w_t = (\frac{\nu - \nu_0}{\nu_0})^{t}$\\
+In Equation (7), $\textbf{I}_s$ represents a collection of $\delta$-functions that describe the sky locations and amplitudes of flux components corresponding to angular scale $s$ in the image formed by the $t^{th}$ Taylor series coefficient.
+The list of visibilities $\textbf{V}$ can be expressed in Matrix notation as, 
+\begin{equation}
+\textbf{V}_{n\times1}^{obs} = [\textbf{S}_{n\times m}][\textbf{F}_{m\times m}]\textbf{I}_{m\times 1}^{sky}
+\end{equation}
+This is just the Van Cittert-Zernicke theorem (Equation (3)) restated, in case of discrete values and adding the presence of a sampling function (matrix) $\textbf{S}$. $\textbf{I}$ is the intensity matrix and $\textbf{F}$ is the discrete Fourier transform matrix. To account for the frequency dependency of the sky intensity, we re-write (9) as 
+\begin{equation}
+\textbf{V}_{\nu}^{obs} = \sum_{s=0}^{N_s}\sum_{t=0}^{N_t}w_\nu^{t}[\textbf{S}_{\nu}][\textbf{T}_s][\textbf{F}]\textbf{I}^{sky}_{s_{t}}
+\end{equation}
+This has an additional \textit{taper function} $\textbf{T}$ for the frequency variation. In case there are multiple frequencies, the weight function will also turn into a matrix $\textbf{W}$. Computing intensities $\textbf{I}$ is now reduced to an inversion problem, because $\textbf{S}$ and $\textbf{V}$ are known. Further details may be found in (Rau and Cornwell 2011) and (Rau 2011, PhD Thesis).\\\\ 
+\textbf{Limitations of the MTMFS algorithm} 
+Due to the short-spacing problem (Section 2.1), it does not work
+for sources that have low surface brightness and large angular extents. However, there are important science goals that can be achieved by extending to this technique for such sources. This can be clearly seen in \hyperref[ 5]{\figurename{ 5}}, where the image looks very similar to that of the original sky in \hyperref[ 1]{\figurename{ 1}}, which has a flat spectrum. However, the spectrum is not reproduced properly at any point on the extended cloud source.
+\section{Methodology and Algorithm}
+\subsection{MTMFS and WMCA : Points of Divergence}
+The Wideband Multiterm Combination Algorithm (WMCA) is an extension of the MTMFS algorithm (Rau 2011, PhD thesis). The major conceptual differences are notes as below.
+\begin{enumerate}
+\item The Multiterm Wideband Combination Algorithm developed by us does a joint deconvolution, namely, that it feathers both the single-dish data as well as the PSF with the corresponding interferometer ones. In case of a single-dish telescope, the PSF is simply the antenna beam or the power pattern.
+\item In the first run of the setup, the gridded interferometer residual is first feathered with the single-dish data, then passed on to carry out the deconvolution.
+\item After the run of each minor cycle, the multiterm images are converted back to the images at all the observing frequencies as a model (hereafter called a "cube" of images) .Thereafter, the residual contribution of the single dish image is calculated by smoothing these "model" images with their respective beams at their respective frequencies. 
+\item After the run of each major cycle, the single-dish residual images are recalculated. These are then again feathered with the interferometer residuals and written out. 
+\item These composite residual images are converted back into the multiterm residuals and the cycle is begun afresh.
+\end{enumerate}
+The major differences between an MTMFS algorithm and the WMCA are shown in \hyperref[ 4]{\figurename{ 4}}.
+\begin{figure}
+\centering
+\includegraphics[width=0.45\textwidth]{../MTMFSFig}
+\includegraphics[width=0.4\textwidth]{../WMCAFig}
+\caption{Illustration of the conceptual differences between the MTMFS algorithm and the WMCA algorithm}
+\label{ 4}
+\end{figure}
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{../Extended_Flat_mtmfsonly_image}
+\includegraphics[width=0.4\textwidth]{../Extended_Flat_mtmfs_only_alpha}
+\caption{The reconstructed multiterm images using pure MTMFS for the flat-spectrum sky shown in \hyperref[ 1]{Figure 1}}
+% % give image credits to NRAO and NCRA.
+\label{ 5}
+\end{figure}
+\subsection{Detailed Description of the WMCA Algorithm}
+\begin{enumerate}
+\item \textbf{Data Input} : Interferometer visibility values, stored in cube format $\textbf{V}^{obs}$
+\item \textbf{Data Input} : Processed single-dish raw image values $\textbf{I}^{SD}$, stored pixel-wise in a cube format 
+\item \textbf{Data input} : Beam information of the Interferometer restoring beam and the single-dish antenna pattern $P^{antenna}$
+\item \textbf{Data input} : $uv$ - sampling function, choice of weighting scheme and the input reference frequency for the deconvolver to compute the weight terms $w$
+\item further work TBD............................... {I don't have the "Algorithm" command}
+\end{enumerate}
+\subsection{Outputs from this Algorithm}
+A run of this algorithm produces the following outputs. 
+\begin{itemize}
+\item A number of images equal to the number of terms in the Taylor series is produced.
+\item Residual images and model images equaling the number of terms in the Taylor series are produced by the multiterm algorithm, plus a cube residual and model produced by the cube portion of the major cycle.
+\item A spectral index map is produced by the multiterm portion of the algorithm, which shows the spectral index of the sky for each pixel in the image. Another image that holds the errors for the index estimates per pixel is also created. 
+\item For $n$ terms, this algorithm creates $2n-1$ multiterm PSFs and one cube PSF.
+\end{itemize}
+\begin{figure}
+\centering
+\includegraphics[width=0.3\textwidth]{../Extended_flat_trueim_withindices}
+\includegraphics[width=0.3\textwidth]{../Extended_spectral_trueim_withindices}
+\caption{Two different simulated "sky images" with different spectral indices. Both derive from \hyperref[ 1]{Figure 1}.}
+\label{ 6}
+\end{figure}
+\section{Tests and Results}
+\subsection{Simulation of the Trial Data}
+This new algorithm was tested on two different test cases, both of which derive from \hyperref[ 1]{Figure 1} : 
+\begin{enumerate}
+\item A \textit{flat-spectrum} sky, where the sky does not change with frequency. In this case, the plot of the spectrum must show a value of zero for every pixel
+\item A \textit{steep-spectrum} sky, where each object shown in \hyperref[ 1]{Figure 1} has a nonzero spectral index. The spectral indices are indicated on the true sky image.
+\end{enumerate}
+Both these "true skies" are shown in \hyperref[ 6]{Figure 6}.
+\subsection{Results from the WMCA Algorithm}
+\subsubsection{The Flat-Spectrum sky}
+The results produced by the WMCA algorithm on the flat-spectrum sky are shown in the subsequent figures. The images show the zero-order Taylor image of the sky (\textit{i.e.}- the reconstructed image of the sky at the centre frequency), the spectral map and its corresponding error map and the residual error on the sky image.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{../Extended_Flat_image_tt0}
+\caption{The Reconstructed Sky Image at the reference frequency}
+\label{ 7}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{../Extended_Flat_alpha}
+\caption{The Reconstructed Spectral map of the sky using WMCA. Comapre this to \hyperref[ 5]{\figurename{ 5}} where the spectrum of the cloud was incorrectly measured by the MTMFS deconvolver}
+\label{ 8}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{../Extended_Flat_alpha_error}
+\caption{The error on the spectral estimate $\alpha$ in \hyperref[ 8]{\figurename{ 8}}}
+\label{ 9}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{../Extended_Flat_residual_tt0}
+\caption{The residual error on \hyperref[ 7]{\figurename{ 7}}}
+\label{ 10}
+\end{figure}
+\subsubsection{The Steep-Spectrum sky}
+The results produced for the steep-spectrum sky shown in \hyperref[ 6]{\figurename{ 6}} (bottom panel) are shown. The outputs are ordered like the previous section.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{../Extended_Spectral_image_tt0}
+\caption{The Reconstructed Sky Image at the reference frequency}
+\label{ 11}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{../Extended_Spectral_alpha}
+\caption{The Reconstructed Spectral map using WMCA. It is seen that this reasonably matches \hyperref[ 6]{\figurename{ 6}}.}
+\label{ 12}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{../Extended_Spectral_alpha_error}
+\caption{The error on the spectral estimate $\alpha$ in \hyperref[ 12]{\figurename{ 12}}}
+\label{ 13}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{../Extended_Spectral_residual_tt0}
+\caption{The residual error on \hyperref[ 11]{\figurename{ 11}}}
+\label{ 14}
+\end{figure}
+\subsection{Using WMCA on Pure Single-Dish Data}
+An interesting consequence of the WMCA algorithm's structure is that declaring the interferometer visibility data to be empty and feeding only the single-dish data also gives a good reconstruction of the sky. The images are inherently limited by the resolution of the single-dish telescope, but are extremely responsive to the sources that have large angular scales. Shown below are the output image set of the algorithm being run on pure single-dish data on a flat-spectrum sky. 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../singledishonly_image_tt0}
+\caption{The Reconstructed Sky Image using only single-dish data at the reference frequency.}
+\label{ 15}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../singledishonly_alpha}
+\caption{The Spectral map produced by the WMCA algorithm using only single-dish data}
+\label{ 16}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../singledishonly_alphaerror}
+\caption{The error on the spectral map produced by the WMCA algorithm using only single-dish data}
+\label{ 17}
+\end{figure}
+\section{Discussion}
+\subsection{Summary of Results}
+The following goals were accomplished during the development of this algorithm : 
+\begin{enumerate}
+\item Solve the short-spacing problem encountered by interferometers.
+\item To combine the wideband multi-frequency data from a single-dish radio telescope and interferometer.
+\item To evaluate the efficacy of a joint-deconvolution algorithm where the single-dish data was inserted into the interferometer data \textit{before} the creation of an image, as compared to the traditional approach of a \textit{post-facto} combination.
+\item To estimate the spectrum of extended sources by creating a wideband image.
+\item To prototype and test the working of an algorithm in order to accomplish these tasks.
+%\item To try this algorithm on real data from an actual astronomical observation.
+\end{enumerate}
+\subsection{Further Work}
+\begin{enumerate}
+\item Test robustness of this algorithm with respect to weighting scheme interpretation, specifically, the immunity of this algorithm to scaling factors inherent to its operation. One obvious stopping criterion is when the deconvolution PSF begins to get distorted. However, the effect of any other things is still to be evaluated.
+\item ??????A-projection???????
+\item Primary Beam Correction (?)
+\item Using Real data : G55 SNR and CTB80 Wideband Mosaic (?)
+\end{enumerate}
+
+\section{Acknowledgements}
+This research was conducted under the National Radio Astronomy's Summer Student Research Assistantship programme, under the guidance of Dr. Urvashi Rau Venkata. This project also fulfills NN's compulsory summer training/internship requirements, mandated as part of the B. Tech (Hons.) course in Instrumentation Engineering, under the Dept. of Electrical Engineering, Indian Institute of Technology Kharagpur. \\Many thanks to Sanjay Bhatnagar and Kumar Golap for their help in resolving several technical issues.  The National Radio Astronomy Observatory is a facility of the National Science
+Foundation operated under cooperative agreement by Associated Universities,
+Inc. 
+\section{References}
+<<<Add stuff here>>>	 
+\end{document}
+
+% End of file `sample61.tex'.
